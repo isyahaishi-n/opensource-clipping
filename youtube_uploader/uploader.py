@@ -388,8 +388,11 @@ def upload_manifest_to_youtube(
     tz_name: str = "Asia/Makassar",
     interval_hours: int = 2,
     start_local: str = None,
-    test_mode: bool = False
+    test_mode: bool = False,
+    safety_config: dict = None,
+    skip_approval: bool = False,
 ):
+
     render_manifest = load_json_file(manifest_file, default=[])
     if not render_manifest:
         print(f"⚠️ {manifest_file} kosong / tidak ditemukan.")
