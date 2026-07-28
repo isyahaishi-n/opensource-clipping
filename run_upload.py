@@ -14,7 +14,6 @@ import os
 import argparse
 
 from youtube_uploader import upload_manifest_to_youtube
-from youtube_uploader.safety import load_safety_config
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -73,7 +72,6 @@ def main():
         sys.exit(1)
 
     # Load safety config
-    safety_config = load_safety_config(args.safety_config)
 
     if args.no_approval:
         print("\n⚠️  WARNING: Manual approval dinonaktifkan (--no-approval).")
@@ -89,8 +87,6 @@ def main():
         interval_hours=args.interval_hours,
         start_local=args.start_local,
         test_mode=args.test_mode,
-        safety_config=safety_config,
-        skip_approval=args.no_approval,
     )
 
     print("\n✅ Proses upload YouTube selesai.")
