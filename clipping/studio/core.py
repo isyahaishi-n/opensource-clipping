@@ -74,6 +74,9 @@ render_split_screen = _load_studio_internal_module("render_split_screen.py", "cl
 buat_video_split_screen = render_split_screen.buat_video_split_screen
 render_camera_switch = _load_studio_internal_module("render_camera_switch.py", "clipping_studio_render_camera_switch")
 buat_video_camera_switch = render_camera_switch.buat_video_camera_switch
+render_reframe = _load_studio_internal_module("render_reframe.py", "clipping_studio_render_reframe")
+buat_video_reframe = render_reframe.buat_video_reframe
+
 
 # Helpers and ffmpeg_utils
 _helpers = _load_studio_internal_module("helpers.py", "clipping_studio_helpers")
@@ -235,6 +238,16 @@ def proses_klip(
         and len(set(s["speaker"] for s in diarization_data)) >= 2
     )
 
+    # Reframe (pan/zoom) template — custom template ported from main123.py.
+    # Lowest precedence: only used when split-screen and camera-switch are off.
+    use_reframe = (
+        not use_split
+        and not use_camera_switch
+        and getattr(cfg, "use_reframe", False)
+        and _is_vertical_ratio(rasio)
+    )
+
+
     broll_list = clip.get("broll_list", [])
     broll_aktif = []
     if cfg.use_broll and broll_list:
@@ -383,6 +396,17 @@ def proses_klip(
                     cfg,
                     label=f"Rank {rank} Hook CameraSwitch",
                 )
+            elif use_reframe:
+                print("   📸 [Hook] Reframe (pan/zoom) render...")
+                get_x_h = buat_video_reframe(
+                    file_hook_src,
+                    h_silent,
+                    h_start,
+                    h_end,
+                    rasio,
+                    cfg,
+                    label=f"Rank {rank} Hook Reframe",
+                )
             else:
                 print("   📸 [Hook] Hybrid render...")
                 get_x_h = buat_video_hybrid(
@@ -394,6 +418,7 @@ def proses_klip(
                     cfg,
                     label=f"Rank {rank} Hook",
                 )
+
             
             aktif_advanced_hook = cfg.use_advanced_text_on_hook
             if not cfg.no_subs and not custom_hook:
@@ -487,12 +512,19 @@ def proses_klip(
                         label=f"Rank {rank} Seg {idx} CameraSwitch",
                         broll_data=broll_aktif,
                     )
+                elif use_reframe:
+                    get_x_main = buat_video_reframe(
+                        cfg.file_video_asli, s_silent, s_start, s_end,
+                        rasio, cfg, broll_data=broll_aktif,
+                        label=f"Rank {rank} Seg {idx} Reframe",
+                    )
                 else:
                     get_x_main = buat_video_hybrid(
                         cfg.file_video_asli, s_silent, s_start, s_end,
                         rasio, cfg, broll_aktif,
                         label=f"Rank {rank} Seg {idx} Hybrid",
                     )
+
 
                 # Subtitle for this segment
                 if not cfg.no_subs:
@@ -616,6 +648,18 @@ def proses_klip(
                     label=f"Rank {rank} Main CameraSwitch",
                     broll_data=broll_aktif,
                 )
+            elif use_reframe:
+                print("   📸 [Main] Reframe (pan/zoom) render (Visual)...")
+                get_x_main = buat_video_reframe(
+                    cfg.file_video_asli,
+                    m_silent,
+                    m_start,
+                    m_end,
+                    rasio,
+                    cfg,
+                    broll_data=broll_aktif,
+                    label=f"Rank {rank} Main Reframe",
+                )
             else:
                 print("   📸 [Main] Hybrid render (Visual)...")
                 get_x_main = buat_video_hybrid(
@@ -628,6 +672,7 @@ def proses_klip(
                     broll_aktif,
                     label=f"Rank {rank} Main",
                 )
+
 
             vo_data = clip.get("voiceover")
             

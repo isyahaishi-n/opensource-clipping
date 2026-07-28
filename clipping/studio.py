@@ -66,6 +66,8 @@ TMP_TRANSITION_POOL = _core.TMP_TRANSITION_POOL
 buat_thumbnail = _core.buat_thumbnail
 buat_video_split_screen = _core.buat_video_split_screen
 buat_video_camera_switch = _core.buat_video_camera_switch
+buat_video_reframe = _core.buat_video_reframe
+
 _get_render_dims = _core._get_render_dims
 _is_vertical_ratio = _core._is_vertical_ratio
 proses_klip = _core.proses_klip

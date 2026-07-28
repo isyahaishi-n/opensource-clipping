@@ -33,7 +33,18 @@ USE_BROLL = True
 USE_HOOK_GLITCH = True
 USE_SPLIT_SCREEN = False
 USE_CAMERA_SWITCH = False
+# Custom template: animated pan/zoom reframe 16:9 -> 9:16 (ported from main123.py)
+USE_REFRAME = False
+REFRAME_MOVE_DURATION = 3.0   # seconds for the pan/zoom move to complete
+REFRAME_START_SCALE = 1.0     # 1.0 = full wide framing at start
+REFRAME_END_SCALE = 0.72      # <1.0 = tighter/zoomed framing at end
+REFRAME_START_CX = 0.50       # horizontal center (0..1) at start
+REFRAME_START_CY = 0.50       # vertical center (0..1) at start
+REFRAME_END_CX = 0.47         # horizontal center (0..1) at end
+REFRAME_END_CY = 0.48         # vertical center (0..1) at end
+REFRAME_NO_LETTERBOX = False  # True = full-bleed (no black bars) instead of letterbox start
 DIARIZATION_NUM_SPEAKERS = "auto"
+
 SWITCH_HOLD_DURATION = 2.0
 SWITCH_BLEND_DURATION = 0.0  # 0 = instant snap, >0 = smooth blend in seconds
 
@@ -303,6 +314,65 @@ def _build_parser() -> argparse.ArgumentParser:
         default=SWITCH_HOLD_DURATION,
         help="Minimum seconds to hold on the current speaker before switching cameras (camera-switch mode only)",
     )
+
+    # --- Reframe (Pan/Zoom) custom template ---
+    reframe_group = p.add_argument_group("Reframe (Pan/Zoom) Template")
+    reframe_group.add_argument(
+        "--reframe",
+        action="store_true",
+        default=USE_REFRAME,
+        help="Enable custom animated pan/zoom reframe template (9:16 only). "
+        "Lowest precedence: ignored if --split-screen or --camera-switch is active.",
+    )
+    reframe_group.add_argument(
+        "--reframe-move-duration",
+        type=float,
+        default=REFRAME_MOVE_DURATION,
+        help="Seconds for the reframe pan/zoom move to complete.",
+    )
+    reframe_group.add_argument(
+        "--reframe-start-scale",
+        type=float,
+        default=REFRAME_START_SCALE,
+        help="Start framing scale (1.0 = full wide).",
+    )
+    reframe_group.add_argument(
+        "--reframe-end-scale",
+        type=float,
+        default=REFRAME_END_SCALE,
+        help="End framing scale (<1.0 = tighter/zoomed).",
+    )
+    reframe_group.add_argument(
+        "--reframe-start-cx",
+        type=float,
+        default=REFRAME_START_CX,
+        help="Start horizontal center (0..1).",
+    )
+    reframe_group.add_argument(
+        "--reframe-start-cy",
+        type=float,
+        default=REFRAME_START_CY,
+        help="Start vertical center (0..1).",
+    )
+    reframe_group.add_argument(
+        "--reframe-end-cx",
+        type=float,
+        default=REFRAME_END_CX,
+        help="End horizontal center (0..1).",
+    )
+    reframe_group.add_argument(
+        "--reframe-end-cy",
+        type=float,
+        default=REFRAME_END_CY,
+        help="End vertical center (0..1).",
+    )
+    reframe_group.add_argument(
+        "--reframe-no-letterbox",
+        action="store_true",
+        default=REFRAME_NO_LETTERBOX,
+        help="Use full-bleed framing (no black bars) instead of a letterbox start.",
+    )
+
     p.add_argument(
         "--switch-blend-duration",
         type=float,
@@ -747,7 +817,18 @@ def build_config(argv: list[str] | None = None) -> SimpleNamespace:
         use_dynamic_split=args.dynamic_split,
         split_trigger=args.split_trigger,
         use_camera_switch=args.camera_switch,
+        # Reframe (Pan/Zoom) custom template
+        use_reframe=args.reframe,
+        reframe_move_duration=args.reframe_move_duration,
+        reframe_start_scale=args.reframe_start_scale,
+        reframe_end_scale=args.reframe_end_scale,
+        reframe_start_cx=args.reframe_start_cx,
+        reframe_start_cy=args.reframe_start_cy,
+        reframe_end_cx=args.reframe_end_cx,
+        reframe_end_cy=args.reframe_end_cy,
+        reframe_no_letterbox=args.reframe_no_letterbox,
         diarization_num_speakers=args.diarization_speakers,
+
         switch_hold_duration=args.switch_hold_duration,
         switch_blend_duration=args.switch_blend_duration,
         split_zoom=args.split_zoom,
